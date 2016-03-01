@@ -1,0 +1,14 @@
+{
+  "name": "language-onyx",
+  "version": "0.1.0",
+  "description": "Syntax highlighting for Onyx system- and scriptingi- (!) programming language.",
+  "keywords": [
+  ],
+  "repository": "https://github.com/ozra/atom-onyx",
+  "license": "MIT",
+  "engines": {
+    "atom": ">=1.0.0 <2.0.0"
+  },
+  "dependencies": {
+  }
+}
