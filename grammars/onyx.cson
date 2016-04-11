@@ -109,6 +109,82 @@ patterns: [
     name: "comment.line.onyx"
   }
   {
+    comment: "TERSE Suffix Templates"
+    contentName: "   xxx.variable.parameter.function.onyx    "
+    name: "meta.function.method.with-arguments.onyx"
+    match: '''
+      (?x)
+      			         (?<=
+      			         	^ |
+      			         	\\s
+      			         )
+      
+      			         \\( \\s*
+      			         ( number|int|real|string )
+      					 \\s* \\)
+      
+      		         	(
+      		         		[-_\\x{80}-\\x{10FFFF}\\w]*?
+      		         	)
+      
+      					\\s*
+      					(=|=>)
+      
+      	        
+    '''
+    captures:
+      "2":
+        name: "entity.name.function.onyx"
+      "3":
+        name: "punctuation.definition.parameters.onyx, keyword.control.secondary"
+  }
+  {
+    comment: "TERSE Macros / Templates"
+    contentName: "   xxx.variable.parameter.function.onyx    "
+    name: "meta.function.method.with-arguments.onyx"
+    match: '''
+      (?x)
+      			         (?<=
+      			         	^ |
+      			         	\\s
+      			         )
+      
+      			         # complete pathed method name
+      			         (?:
+      			         	# a method name prefix / path
+      			         	(
+      				         	(?:
+      				         		[A-Z_\\x{80}-\\x{10FFFF}] [-\\x{80}-\\x{10FFFF}\\w]* (?: \\.|::)
+      				         	) *
+      			         	)
+      			           	(
+      			           		(?:
+      								# the method name
+      			           			(?: [a-zA-Z_\\x{80}-\\x{10FFFF}] [-\\x{80}-\\x{10FFFF}\\w] * (?: [?!%'] | =(?!>) )? )
+      				           	)
+      			           	)
+      			         ) ?
+      
+      			         \\(
+      			         ( (?: \\s* [\\w_-]+ \\s* ,? )* )
+      					 \\)
+      
+      					(
+      					\\s*
+      					(?:'ast)?
+      					\\s*
+      					(?: = | => )
+      					)
+      
+      	        
+    '''
+    captures:
+      "2":
+        name: "entity.name.function.onyx"
+      "4":
+        name: "punctuation.definition.parameters.onyx, keyword.control.secondary"
+  }
+  {
     comment: "The Arrow style func def"
     contentName: "   xxx.variable.parameter.function.onyx    "
     name: "meta.function.method.with-arguments.onyx"
@@ -153,7 +229,7 @@ patterns: [
       			           			(?: [a-zA-Z_\\x{80}-\\x{10FFFF}] [-\\x{80}-\\x{10FFFF}\\w] * (?: [?!%'] | =(?!>) )? )
       			           			 |
       			           			# …or an operator method
-      				           		(?: ===? | \\(\\) | >[>=]? | <=> | <[<=]? | [%&`/\\|] | \\*\\*? | =?~ | [-+]@? | \\[\\]=? )
+      				           		(?: ===? | ~~ | !~~ | !~ | \\(\\) | >[>=]? | <=> | <[<=]? | [%&`/\\|] | \\*\\*? | =?~ | [-+]@? | \\[\\]=? )
       				           	)
       			           	)
       			         ) ?
@@ -168,7 +244,8 @@ patterns: [
       			         # make sure we've got the arrow finish - else it's not a fn-def!
       			         (?=
       			         	(?: (?:\\\\\\n) | [^\\n] ) +
-      						(?: ->|-->|==>)([!@>]|\\s|\\n)
+      						(?: ->|-->|==>)
+      						( [!@>] | \\s | \\n)
       			         )
       	        
     '''
@@ -195,7 +272,9 @@ patterns: [
       				# A fn-def arrow
       				(?:\\x{20}|(?:\\\\\\n))*
       				(
-      					(?: ->|-->|==>)[)}!@>]*(?=[\\t\\s\\n])
+      					(?: ->|-->|==> )
+      					[)}!@>]*
+      					(?=[\\t\\s\\n])
       				)
       			
     '''
@@ -470,7 +549,7 @@ patterns: [
       			           			(?: [a-zA-Z_\\x{80}-\\x{10FFFF}] [-\\x{80}-\\x{10FFFF}\\w] * (?: [?!%'] | =(?!>) )? )
       			           			 |
       			           			# …or an operator method
-      				           		(?: ===? | \\(\\) | >[>=]? | <=> | <[<=]? | [%&`/\\|] | \\*\\*? | =?~ | [-+]@? | \\[\\]=? )
+      				           		(?: ===? | ~~ | !~~ | !~ | \\(\\) | >[>=]? | <=> | <[<=]? | [%&`/\\|] | \\*\\*? | =?~ | [-+]@? | \\[\\]=? )
       				           	)
       			           	)
       			         ) ?
@@ -597,7 +676,7 @@ patterns: [
         name: "entity.name.function.onyx"
   }
   {
-    comment: "Type Declaration / Definition"
+    comment: "typedef - Type Declaration / Definition"
     name: "meta.class.onyx"
     captures:
       "1":
@@ -626,7 +705,7 @@ patterns: [
       				\\s+
       				(?:
       					# deffed type/class name
-      					([.A-Z_\\x{80}-\\x{10FFFF}][-.\\w\\x{80}-\\x{10FFFF}]*)
+      					((?: \\$\\.)? [.A-Z_\\x{80}-\\x{10FFFF}][-.\\w\\x{80}-\\x{10FFFF}]*)
       					( [\\(<\\[](?: [,\\s.a-zA-Z0-9_\\x{80}-\\x{10FFFF}]+ )[\\)>\\]] )?
       					\\s*
       
@@ -686,6 +765,64 @@ patterns: [
       						)
       					)?
       				)
+      
+      			
+    '''
+  }
+  {
+    comment: "typedef - TERSE TypeDef"
+    name: "meta.class.onyx"
+    captures:
+      "1":
+        name: "keyword.control.class.onyx"
+      "2":
+        name: "entity.name.type.class.onyx"
+      "3":
+        name: "entity.name.type.class.onyx"
+      "4":
+        name: '''
+          entity.name.type.class.onyx,
+          							type.class.punctuation.separator.onyx
+          					
+        '''
+      "5":
+        name: "keyword.control.primary.onyx"
+      "6":
+        name: "entity.name.type.class.super.onyx"
+    match: '''
+      (?x)
+      				^
+      				(\\s*)
+      				(?:
+      					# deffed type/class name
+      					((?: \\$\\.)? [.A-Z_\\x{80}-\\x{10FFFF}][-.\\w\\x{80}-\\x{10FFFF}]*)
+      					( [\\(<\\[](?: [,\\s.a-zA-Z0-9_\\x{80}-\\x{10FFFF}]+ )[\\)>\\]] )?
+      					\\s*
+      
+      					# inherit | alias "arrow"
+      					( <: | <· | ⊢ | <= | :> | ≡ | := | :: | < )
+      
+      					(?:
+      						\\s*
+      						(
+      							# modifier
+      							(?: abstract)?
+      							\\s*
+      						)?
+      
+      						# inherited type
+      						(
+      							[.A-Z\\x{80}-\\x{10FFFF}][-.\\w\\x{80}-\\x{10FFFF}]*
+      							(?:
+      								[(<\\[] (?: [,.a-zA-Z0-9_-]+ ) [)>\\]]
+      							)?
+      						)?
+      
+      						(?: \\s*::)?
+      
+      					)
+      				)
+      				\\s*(?> =>|:|--|$)
       
       			
     '''
@@ -811,6 +948,7 @@ patterns: [
     '''
   }
   {
+    description: "Tag / Symbol Constant"
     match: "(?: (\\#) [-\\w_\\x{80}-\\x{10FFFF}]+ ) | (?: (\\#)\" (?: [^\"]|(?:\\\\\") )+ \" ) "
     name: "constant.language.onyx"
   }
@@ -847,6 +985,45 @@ patterns: [
         name: "entity.other.inherited-class.module.third.onyx"
       "8":
         name: "punctuation.separator.inheritance.onyx"
+  }
+  {
+    description: "TERSE Module Declaration"
+    name: "meta.module.onyx"
+    match: '''
+      (?x)
+      				^
+      				\\s*
+      				(
+      					([A-Z\\x{80}-\\x{10FFFF}][\\w\\x{80}-\\x{10FFFF}]*(\\.))?
+      					([A-Z\\x{80}-\\x{10FFFF}][\\w\\x{80}-\\x{10FFFF}]*(\\.))?
+      					([A-Z\\x{80}-\\x{10FFFF}][\\w\\x{80}-\\x{10FFFF}]*(\\.))*
+      					[A-Z\\x{80}-\\x{10FFFF}][\\w\\x{80}-\\x{10FFFF}]*
+      					(?:
+      						[<\\[]
+      							[, .=A-Z\\x{80}-\\x{10FFFF}\\w]+
+      						[>\\]]
+      					)?
+      				)
+      				(:|=>)
+      			
+    '''
+    captures:
+      "1":
+        name: "entity.name.type.module.onyx"
+      "2":
+        name: "entity.other.inherited-class.module.first.onyx"
+      "3":
+        name: "punctuation.separator.inheritance.onyx"
+      "4":
+        name: "entity.other.inherited-class.module.second.onyx"
+      "5":
+        name: "punctuation.separator.inheritance.onyx"
+      "6":
+        name: "entity.other.inherited-class.module.third.onyx"
+      "7":
+        name: "punctuation.separator.inheritance.onyx"
+      "8":
+        name: "keyword.control.module.onyx"
   }
   {
     name: "meta.lib.onyx"
@@ -892,7 +1069,7 @@ patterns: [
     match: '''
       (?x)
       				(?<![-.\\x{80}-\\x{10FFFF}\\w])
-      				(BEGIN|alias|await|begin|try|case|match|branch|cond|abstract|class|distinct|friend|END|ensure|fulfil|iff|if|ifdef|lib|module|mixin|out|rescue|with|union|enum|template|macro|then|do|begins|type__remove_ke|unless|where|fun)
+      				(BEGIN|alias|await|begin|try|case|match|branch|cond|abstract|class|distinct|friend|END|ensure|fulfil|iff|if|ifdef|lib|module|mixin|out|rescue|with|union|enum|template|macro|suffix|babel|then|do|begins|below|following|follows|throughout|type__remove_ke|unless|where|using|fun)
       				(?![.\\x{80}-\\x{10FFFF}\\w?!-])
       			
     '''
@@ -912,13 +1089,17 @@ patterns: [
     comment: "Give the end keyword an additional scope"
     match: '''
       (?x)
-      				(?<![-.\\x{80}-\\x{10FFFF}\\w])
-      				end[-_–]?(
+      				(?<! [-.\\x{80}-\\x{10FFFF}\\w] )
+      
+      				end
+      				([-_– ](?:
       					if|unless|case|trait|class|type|struct|try|module|scope|
       					def|fn|fun|own|Self|params|formal|
       					loop|repeat|while|until|for|each
-      				)?
+      				))?
+      				(\\s+[A-Za-z0-9_–-]+)?
       				(?![.\\x{80}-\\x{10FFFF}\\w?!-])
+      			
     '''
     name: "keyword.control.secondary.end.onyx"
   }
@@ -972,9 +1153,13 @@ patterns: [
     name: "variable.other.readwrite.instance.onyx"
   }
   {
+    match: "(?x) \\x{2039}|\\x{203A}| \\x{2329}|\\x{232A}| \\x{ff08}|\\x{ff09} "
+    name: "punctuation.section.other.onyx"
+  }
+  {
     name: "support.class.onyx"
     undefined: "match"
-    "(?x)\n\t\t\t\t(\n\t\t\t\t\t['`:.~^]\\s*\n\t\t\t\t\t(?:[<\\[]?[*A-Z][\\[\\]<>\\w\\x{80}-\\x{10FFFF}]*)|(?:<>)\n\t\t\t\t)|(\n\t\t\t\t\t['`:.~^]\\s*\n\t\t\t\t\t\\(\\s*\n\t\t\t\t\t(?:[<\\[]?[*A-Z][\\[\\]<>\\w\\x{80}-\\x{10FFFF}]*)|(?:<>)\n\t\t\t\t\t(\n\t\t\t\t\t\t\\s*\\|\\s*\n\t\t\t\t\t\t(?:[<\\[]?[*A-Z][\\[\\]<>\\w\\x{80}-\\x{10FFFF}]*)|(?:<>)\n\t\t\t\t\t)*\n\t\t\t\t\t\\s*\\)\n\t\t\t\t)\n\t\t\t": "captures"
+    "(?x)\n\t\t\t\t(\n\t\t\t\t\t\\$?\n\t\t\t\t\t['`:.~^]\\s*\n\t\t\t\t\t(?:[<\\[]?[*A-Z][\\[\\]<>\\w\\x{80}-\\x{10FFFF}]*)|(?:<>)\n\t\t\t\t)|(\n\t\t\t\t\t\\$?\n\t\t\t\t\t['`:.~^]\\s*\n\t\t\t\t\t\\(\\s*\n\t\t\t\t\t(?:[<\\[]?[*A-Z][\\[\\]<>\\w\\x{80}-\\x{10FFFF}]*)|(?:<>)\n\t\t\t\t\t(\n\t\t\t\t\t\t\\s*\\|\\s*\n\t\t\t\t\t\t(?:[<\\[]?[*A-Z][\\[\\]<>\\w\\x{80}-\\x{10FFFF}]*)|(?:<>)\n\t\t\t\t\t)*\n\t\t\t\t\t\\s*\\)\n\t\t\t\t)\n\t\t\t": "captures"
   }
   {
     captures:
