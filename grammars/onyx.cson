@@ -10,57 +10,8 @@ fileTypes: [
   "onyq"
 ]
 firstLineMatch: "^#!/.*\\b(onyx|ox)"
-foldingStartMarker: '''
-  (?x)^
-  	    (\\s*+
-  	        ((?:abstract )?module|trait|mixin|class|struct|type|enum|def(?!.*\\bend\\s*$)
-  	        |unless|if
-  	        |case
-  	        |begin
-  	        |for|while|until
-  	        |^=begin
-  	        |(  "(\\\\.|[^"])*+"          # eat a double quoted string
-  	        	| '(\\\\.|[^'])*+'        # eat a single quoted string
-  	        	|   [^-"']                # eat all but comments and strings
-  	         )*
-  	         (
-  	         	\\s
-  	         	(do|begin|case|try|ensure|fulfil)
-  	         	| (?<!-\\$)[-+=&|*/~%^<>~] \\s*+ (if|unless)
-  	         )
-  	        )\\b
-  	        (?! [^;]*+ ; .*? \\bend\\b )
-  	    |(  "(\\\\.|[^"])*+"              # eat a double quoted string
-  	     | '(\\\\.|[^'])*+'            # eat a single quoted string
-  	     |   [^-"']                    # eat all but comments and strings
-  	     )*
-  	     ( \\{ (?!  [^}]*+ \\} )
-  	     | \\[ (?! [^\\]]*+ \\] )
-  	     )
-  	    ).*$
-  		# |   -- .*? \\(fold\\) \\s*+ $         # Sune’s special marker
-  	
-'''
-foldingStopMarker: '''
-  (?x)
-  		(   (^|;) \\s*+ end   \\s*+ (-- .*)? $
-  		|   (^|;) \\s*+ end \\. .* $
-  		|   ^     \\s*+ [}\\]] ,? \\s*+ (-- .*)? $
-  		# |   -- .*? \\(end\\) \\s*+ $    # Sune’s special marker
-  		|   ^=end
-  		)
-'''
 scopeName: "source.onyx"
 patterns: [
-  {
-    begin: "^=begin"
-    captures:
-      "0":
-        name: "punctuation.definition.comment.onyx"
-    comment: "multiline comments"
-    end: "^=end"
-    name: "comment.block.documentation.onyx"
-  }
   {
     name: "comment.line.parse-directive.onyx"
     match: '''
@@ -81,108 +32,39 @@ patterns: [
         name: "punctuation.definition.comment.onyx"
   }
   {
-    captures:
-      "1":
-        name: "punctuation.definition.comment.onyx"
-    match: "(?:^[ \\t]+)?((?:(?:--)|\\x{2014})\\|\\s).*$\\n?"
     name: "comment.line.doc.onyx"
-  }
-  {
     captures:
       "1":
         name: "punctuation.definition.comment.onyx"
-      "2":
-        name: "invalid.illegal.TODO.onyx"
     match: '''
       (?x)
-      				((?:\\s|^)
-      					(?:(?:--)|\\x{2014})
+      				(?: [ \\t]+ )
+      				(
       					(?:
-      						.*(TODO|todo)?.*$
+      						(?:--)|
+      						\\x{2014}
       					)
-      					|
-      					(?:
-      						$
-      					)
+      					\\|\\s
       				)
+      				.*$\\n?
+      			
     '''
+  }
+  {
     name: "comment.line.onyx"
-  }
-  {
-    comment: "TERSE Suffix Templates"
-    contentName: "   xxx.variable.parameter.function.onyx    "
-    name: "meta.function.method.with-arguments.onyx"
-    match: '''
+    begin: '''
       (?x)
-      			         (?<=
-      			         	^ |
-      			         	\\s
-      			         )
-      
-      			         \\( \\s*
-      			         ( number|int|real|string )
-      					 \\s* \\)
-      
-      		         	(
-      		         		[-_\\x{80}-\\x{10FFFF}\\w]*?
-      		         	)
-      
-      					\\s*
-      					(=|=>)
-      
-      	        
+      				(?: \\s | ^ )
+      				(?: -- | \\x{2014})
+      			
     '''
-    captures:
-      "2":
-        name: "entity.name.function.onyx"
-      "3":
-        name: "punctuation.definition.parameters.onyx, keyword.control.secondary"
-  }
-  {
-    comment: "TERSE Macros / Templates"
-    contentName: "   xxx.variable.parameter.function.onyx    "
-    name: "meta.function.method.with-arguments.onyx"
-    match: '''
-      (?x)
-      			         (?<=
-      			         	^ |
-      			         	\\s
-      			         )
-      
-      			         # complete pathed method name
-      			         (?:
-      			         	# a method name prefix / path
-      			         	(
-      				         	(?:
-      				         		[A-Z_\\x{80}-\\x{10FFFF}] [-\\x{80}-\\x{10FFFF}\\w]* (?: \\.|::)
-      				         	) *
-      			         	)
-      			           	(
-      			           		(?:
-      								# the method name
-      			           			(?: [a-zA-Z_\\x{80}-\\x{10FFFF}] [-\\x{80}-\\x{10FFFF}\\w] * (?: [?!%'] | =(?!>) )? )
-      				           	)
-      			           	)
-      			         ) ?
-      
-      			         \\(
-      			         ( (?: \\s* [\\w_-]+ \\s* ,? )* )
-      					 \\)
-      
-      					(
-      					\\s*
-      					(?:'ast)?
-      					\\s*
-      					(?: = | => )
-      					)
-      
-      	        
-    '''
-    captures:
-      "2":
-        name: "entity.name.function.onyx"
-      "4":
-        name: "punctuation.definition.parameters.onyx, keyword.control.secondary"
+    end: "$"
+    patterns: [
+      {
+        match: "\\b(?:TODO|todo|FIXME|fixme)\\b"
+        name: "invalid.illegal.TODO.onyx"
+      }
+    ]
   }
   {
     comment: "The Arrow style func def"
@@ -256,15 +138,15 @@ patterns: [
       
       				# Possible return type
       				(
-      					(?:\\x{20}|(?:\\\\ \\n))*
-      					[:'`.]?
-      					(?:\\x{20}|(?:\\\\ \\n))*
+      					\\s*
+      					[:'.]?
+      					\\s*
       					# *TODO* also grouping and pipe
       					(?:
       						!
       						|
       						(?:
-      							[*A-Z][\\x{80}-\\x{10FFFF}\\w<>\\[\\]]*
+      							[*A-Z][\\x{80}-\\x{10FFFF}\\w<>\\[\\]]* \\??
       						)
       					)
       				) ?
@@ -384,15 +266,15 @@ patterns: [
       
       				# Possible return type
       				(
-      					(?:\\x{20}|(?:\\\\ \\n))*
+      					\\s*
       					[:'`.]?
-      					(?:\\x{20}|(?:\\\\ \\n))*
+      					\\s*
       					# *TODO* also grouping and pipe
       					(?:
       						!
       						|
       						(?:
-      							[*A-Z][\\x{80}-\\x{10FFFF}\\w<>\\[\\]]*
+      							[*A-Z][\\x{80}-\\x{10FFFF}\\w<>\\[\\]]* \\??
       						)
       					)
       				) ?
@@ -570,15 +452,15 @@ patterns: [
       
       				# Possible return type
       				(
-      					(?:\\x{20}|(?:\\\\ \\n))*
+      					\\s*
       					[:'`.]?
-      					(?:\\x{20}|(?:\\\\ \\n))*
+      					\\s*
       					# *TODO* also grouping and pipe
       					(?:
       						!
       						|
       						(?:
-      							[A-Z][\\x{80}-\\x{10FFFF}\\w<>\\[\\]]*
+      							[A-Z][\\x{80}-\\x{10FFFF}\\w<>\\[\\]] \\??
       						)
       					)
       				) ?
@@ -699,9 +581,9 @@ patterns: [
         name: "entity.name.type.class.super.onyx"
     match: '''
       (?x)
-      				^
+      				(?: ^ | : | => )
       				\\s*
-      				( type|trait | enum|union|struct )
+      				( type|trait | enum|flags|union|struct |redef|reop|reo|ext|extend )
       				\\s+
       				(?:
       					# deffed type/class name
@@ -713,16 +595,12 @@ patterns: [
       					(?:
       						(?:
       							# inherit "arrow"
-      							( <{1,2} )
+      							( < )
       							\\s*
       
       							(
       								# modifier
-      								(?: abstract)?
-      								\\s*
-      
-      								# type builder name
-      								(?: enum|object|value | actor )?
+      								(?: 'abstract)?
       								\\s*
       							)?
       
@@ -739,12 +617,6 @@ patterns: [
       							# alias eq
       							( = )
       							\\s*
-      
-      							(
-      								# type builder name
-      								(?: sum|alias| uniq|unique )?
-      								\\s*
-      							)?
       
       							# aliased type
       							(
@@ -770,62 +642,8 @@ patterns: [
     '''
   }
   {
-    comment: "typedef - TERSE TypeDef"
-    name: "meta.class.onyx"
-    captures:
-      "1":
-        name: "keyword.control.class.onyx"
-      "2":
-        name: "entity.name.type.class.onyx"
-      "3":
-        name: "entity.name.type.class.onyx"
-      "4":
-        name: '''
-          entity.name.type.class.onyx,
-          							type.class.punctuation.separator.onyx
-          					
-        '''
-      "5":
-        name: "keyword.control.primary.onyx"
-      "6":
-        name: "entity.name.type.class.super.onyx"
-    match: '''
-      (?x)
-      				^
-      				(\\s*)
-      				(?:
-      					# deffed type/class name
-      					((?: \\$\\.)? [.A-Z_\\x{80}-\\x{10FFFF}][-.\\w\\x{80}-\\x{10FFFF}]*)
-      					( [\\(<\\[](?: [,\\s.a-zA-Z0-9_\\x{80}-\\x{10FFFF}]+ )[\\)>\\]] )?
-      					\\s*
-      
-      					# inherit | alias "arrow"
-      					( <: | <· | ⊢ | <= | :> | ≡ | := | :: | < )
-      
-      					(?:
-      						\\s*
-      						(
-      							# modifier
-      							(?: abstract)?
-      							\\s*
-      						)?
-      
-      						# inherited type
-      						(
-      							[.A-Z\\x{80}-\\x{10FFFF}][-.\\w\\x{80}-\\x{10FFFF}]*
-      							(?:
-      								[(<\\[] (?: [,.a-zA-Z0-9_-]+ ) [)>\\]]
-      							)?
-      						)?
-      
-      						(?: \\s*::)?
-      
-      					)
-      				)
-      				\\s*(?> =>|:|--|$)
-      
-      			
-    '''
+    match: "(\\{\\%|\\%\\}|(?:\\{=)|(?:=\\}))"
+    name: "keyword.operator.macro.onyx"
   }
   {
     match: "#[\\w_-—]+\\b"
@@ -834,6 +652,7 @@ patterns: [
         name: "constant.other.symbol.onyx"
   }
   {
+    comment: "Char-literal"
     match: "%\"(\\\\)?.\""
     name: "string.quoted.single.onyx"
   }
@@ -865,18 +684,17 @@ patterns: [
     ]
   }
   {
-    begin: "\\b(r|raw|t|c|%)(\")"
+    comment: "double quoted string (allows for interpolation)"
+    begin: "(?:%(r|raw|t|c))?(\")"
     beginCaptures:
       "1":
         name: "keyword.control.primary.onyx"
       "2":
-        name: "punctuation.definition.string.begin.onyx"
-    comment: "double quoted string (allows for interpolation)"
+        name: "punctuation.definition.string.begin.onyx, string.quoted.double.onyx"
     end: "\""
     endCaptures:
       "0":
-        name: "punctuation.definition.string.end.onyx"
-    name: "string.quoted.double.onyx"
+        name: "punctuation.definition.string.end.onyx, string.quoted.double.onyx"
     patterns: [
       {
         include: "#interpolated_onyx"
@@ -884,42 +702,13 @@ patterns: [
       {
         include: "#escaped_char"
       }
-    ]
-  }
-  {
-    begin: "\""
-    beginCaptures:
-      "0":
-        name: "punctuation.definition.string.begin.onyx"
-    comment: "double quoted string (allows for interpolation)"
-    end: "\""
-    endCaptures:
-      "0":
-        name: "punctuation.definition.string.end.onyx"
-    name: "string.quoted.double.onyx"
-    patterns: [
       {
-        include: "#interpolated_onyx"
-      }
-      {
-        include: "#escaped_char"
+        match: "."
+        captures:
+          "0":
+            name: "string.quoted.double.onyx"
       }
     ]
-  }
-  {
-    comment: "Pragmas/Directives Initial Operator Per Line Style"
-    name: "keyword.control.secondary.pragma.onyx"
-    match: '''
-      (?x)
-      				(?: ^ | \\s | (?: ^\\s*type\\s.*? ) )
-      				(?:
-      					(?:
-      						[|\\\\#] \\s
-      						(?: \\s* [A-Za-z][-_\\w\\x{2013}]+ (?: \\s? [:=] \\s? [-\\w\\x{2013}]+)? ) +
-      					)
-      				)
-      			
-    '''
   }
   {
     comment: "Pragmas / Directives / Annotations"
@@ -927,23 +716,7 @@ patterns: [
     match: '''
       (?x)
       				(?:^|\\s)
-      				(?:
-      					# (?: (\\#)([a-z][-_\\w\\x{2013}]+(?:\\s?[:=]\\s?[-\\w\\x{2013}]+)?)\\# ) |
-      					# (?: (-\\#)([a-z][-_\\w\\x{2013}]+(?:\\s?[:=]\\s?[-\\w\\x{2013}]+)?)+ )
-      					(?: (?: \\| | \\\\ | ' )([a-z][-_\\w\\x{2013}]+ (?: \\s? [:=] \\s? [-\\w\\x{2013}]+)? ) )
-      				)
-      			
-    '''
-  }
-  {
-    comment: "Important Pragmas / Directives / Annotations"
-    name: "keyword.control.primary.pragma.onyx"
-    match: '''
-      (?x)
-      				(?:^|\\s)
-      				(?:
-      					(?: [\\|'\\\\]!([A-Za-z][-_\\w\\x{2013}]+ (?: \\s? [:=] \\s? [-\\w\\x{2013}]+)? ) )
-      				)
+      				'!?([a-z][-_\\w\\x{2013}]+(?:[!?])? (?: \\s? [:=] \\s? [-\\w\\x{2013}]+)? )
       			
     '''
   }
@@ -1061,15 +834,24 @@ patterns: [
   }
   {
     comment: "else if is a common mistake carried over from other languages. it works if you put in a second end, but it’s never what you want."
-    match: "(?<![-.\\x{80}-\\x{10FFFF}\\w])else(\\s)+if\\b"
+    match: "(?<! [-.\\x{80}-\\x{10FFFF}\\w])else(\\s)+if\\b"
     name: "invalid.deprecated.onyx"
   }
   {
     comment: "everything being a reserved word, not a value and needing a 'end' is a.."
     match: '''
       (?x)
-      				(?<![-.\\x{80}-\\x{10FFFF}\\w])
-      				(BEGIN|alias|await|begin|try|case|match|branch|cond|abstract|class|distinct|friend|END|ensure|fulfil|iff|if|ifdef|lib|module|mixin|out|rescue|with|union|enum|template|macro|suffix|babel|then|do|begins|below|following|follows|throughout|type__remove_ke|unless|where|using|fun)
+      				(?<! [-.\\x{80}-\\x{10FFFF}\\w])
+      				(
+      					BEGIN|alias|await|begin|try|match|branch|switch|
+      					uniq|unique|distinct|friend|END|ensure|fulfil|
+      					iff|if|ifdef|lib|module|mixin|out|rescue|with|union|
+      					enum|template|macro|suffix|babel|then|do|
+      					begins|below|following|follows|throughout|
+      					type__remove_ke|unless|where|using|fun|
+      					spawn|aside|conflicts|raw|
+      					include|override|redef
+      				)
       				(?![.\\x{80}-\\x{10FFFF}\\w?!-])
       			
     '''
@@ -1077,40 +859,52 @@ patterns: [
   }
   {
     comment: "everything being a reserved word, not a value and needing a 'end' is a.."
-    match: "(?<![-.\\x{80}-\\x{10FFFF}\\w])(else|elsif|elif|in|as|is|of|repeat|each|for|until|while)(?![.\\x{80}-\\x{10FFFF}\\w?!-])"
+    match: '''
+      (?x)
+      				(?<! [-.\\x{80}-\\x{10FFFF}\\w])
+      				(else|elsif|elif|in|as\\?|as|is|of\\?|of|repeat|each|for|until|while)
+      				(?![.\\x{80}-\\x{10FFFF}\\w?!-])
+      			
+    '''
     name: "keyword.control.secondary.onyx"
   }
   {
     comment: "everything being a reserved word, not a value and needing a 'end' is a.."
-    match: "(?<![-.\\x{80}-\\x{10FFFF}\\w])(when)(?![.\\x{80}-\\x{10FFFF}\\w?!-])"
+    match: '''
+      (?x)
+      				(?<! [-.\\x{80}-\\x{10FFFF}\\w])
+      				(case|when)
+      				(?![.\\x{80}-\\x{10FFFF}\\w?!-])
+      			
+    '''
     name: "keyword.control.secondary.when.onyx"
   }
   {
-    comment: "Give the end keyword an additional scope"
+    comment: "\"end\"-keyword"
     match: '''
       (?x)
-      				(?<! [-.\\x{80}-\\x{10FFFF}\\w] )
-      
+      				(?<! [-.\\x{80}-\\x{10FFFF}\\w])
       				end
-      				([-_– ](?:
-      					if|unless|case|trait|class|type|struct|try|module|scope|
-      					def|fn|fun|own|Self|params|formal|
-      					loop|repeat|while|until|for|each
-      				))?
-      				(\\s+[A-Za-z0-9_–-]+)?
-      				(?![.\\x{80}-\\x{10FFFF}\\w?!-])
+      				(?: \\s+[^-][^;\\n\\s]+ )*
+      				(?! (?: -- | —) )
       			
     '''
     name: "keyword.control.secondary.end.onyx"
   }
   {
     comment: " as above, just doesn't need a 'end' and does a logic operation"
-    match: "(?<![-.\\x{80}-\\x{10FFFF}\\w])(and|not|or)(?![.\\x{80}-\\x{10FFFF}\\w?!-])"
+    match: '''
+      (?x)
+      				(?<! [-.\\x{80}-\\x{10FFFF}\\w])
+      				(and|not|or)
+      				(?![.\\x{80}-\\x{10FFFF}\\w?!-])
+      			
+    '''
     name: "keyword.operator.logical.onyx"
   }
   {
     comment: " just as above but being not a logical operation"
-    match: "(?<![-.\\x{80}-\\x{10FFFF}\\w])(alias|alias_method|break|next|pointerof|typeof|sizeof|instance_sizeof|zredo|retry|~\\.|~>|~~>|:|=>|return|breaking|nop|super|undef|yield)(?![.\\x{80}-\\x{10FFFF}\\w?!-])|\\bdefined\\?|\\bblock_given\\?"
+    match: "(?<! [-.\\x{80}-\\x{10FFFF}\\w])(alias|alias_method|break|next|pointerof|typeof|sizeof|instance_sizeof|zredo|retry|~\\.|~>|~~>|:|=>|return|breaking|nop|super|undef|yield)(?![.\\x{80}-\\x{10FFFF}\\w?!-])|\\bdefined\\?|\\bblock_given\\?"
     name: "keyword.control.pseudo-method.onyx"
   }
   {
@@ -1129,11 +923,23 @@ patterns: [
   }
   {
     comment: " everything being a method but having a special function is a.."
-    match: "(?<![-.\\x{80}-\\x{10FFFF}\\w])(init|initialize|raw|new|loop|include|extend|raise|getter|setter|property|private|protected|internal|override|redef|describe|it|with|delegate|def_hash|def_equals|def_equals_and_hash|forward_missing_to|record|assert_responds_to)(?![.\\x{80}-\\x{10FFFF}\\w?!-])[!?]?"
+    match: '''
+      (?x)
+      				(?<! [-.\\x{80}-\\x{10FFFF}\\w])
+      				(init|initialize|new|loop|raise|getter|setter|property|describe|it|with|delegate|def_hash|def_equals|def_equals_and_hash|forward_missing_to|record|assert_responds_to)
+      				(?![.\\x{80}-\\x{10FFFF}\\w?!-])[!?]?
+      			
+    '''
     name: "keyword.other.special-method.onyx"
   }
   {
-    begin: "\\b(require|gem)\\b"
+    begin: '''
+      (?x)
+      				(?<! [-.\\x{80}-\\x{10FFFF}\\w])
+      				(require)
+      				(?![.\\x{80}-\\x{10FFFF}\\w?!-])
+      			
+    '''
     captures:
       "1":
         name: "keyword.other.special-method.onyx"
@@ -1149,17 +955,22 @@ patterns: [
     captures:
       "1":
         name: "punctuation.definition.variable.onyx"
-    match: "([@·])[a-zA-Z_\\x{80}-\\x{10FFFF}][-\\w\\x{80}-\\x{10FFFF}]*[?!%=]?"
+    match: '''
+      (?x)
+      				(?:
+      					([@·])
+      					[a-zA-Z_\\x{80}-\\x{10FFFF}][-\\w\\x{80}-\\x{10FFFF}]*[?!%=]?
+      				) | (?:
+      					%\\d
+      				)
+      			
+    '''
     name: "variable.other.readwrite.instance.onyx"
-  }
-  {
-    match: "(?x) \\x{2039}|\\x{203A}| \\x{2329}|\\x{232A}| \\x{ff08}|\\x{ff09} "
-    name: "punctuation.section.other.onyx"
   }
   {
     name: "support.class.onyx"
     undefined: "match"
-    "(?x)\n\t\t\t\t(\n\t\t\t\t\t\\$?\n\t\t\t\t\t['`:.~^]\\s*\n\t\t\t\t\t(?:[<\\[]?[*A-Z][\\[\\]<>\\w\\x{80}-\\x{10FFFF}]*)|(?:<>)\n\t\t\t\t)|(\n\t\t\t\t\t\\$?\n\t\t\t\t\t['`:.~^]\\s*\n\t\t\t\t\t\\(\\s*\n\t\t\t\t\t(?:[<\\[]?[*A-Z][\\[\\]<>\\w\\x{80}-\\x{10FFFF}]*)|(?:<>)\n\t\t\t\t\t(\n\t\t\t\t\t\t\\s*\\|\\s*\n\t\t\t\t\t\t(?:[<\\[]?[*A-Z][\\[\\]<>\\w\\x{80}-\\x{10FFFF}]*)|(?:<>)\n\t\t\t\t\t)*\n\t\t\t\t\t\\s*\\)\n\t\t\t\t)\n\t\t\t": "captures"
+    "(?x)\n\t\t\t\t(\n\t\t\t\t\t\\$?\n\t\t\t\t\t['`.~^]\\s*\n\t\t\t\t\t(?:[<\\[]?[*A-Z][\\[\\]<>\\w\\x{80}-\\x{10FFFF}]*)|(?:<>)\n\t\t\t\t)|(\n\t\t\t\t\t\\$?\n\t\t\t\t\t['`:.~^]\\s*\n\t\t\t\t\t\\(\\s*\n\t\t\t\t\t(?:[<\\[]?[*A-Z][\\[\\]<>\\w\\x{80}-\\x{10FFFF}]*)|(?:<>)\n\t\t\t\t\t(\n\t\t\t\t\t\t\\s*\\|\\s*\n\t\t\t\t\t\t(?:[<\\[]?[*A-Z][\\[\\]<>\\w\\x{80}-\\x{10FFFF}]*)|(?:<>)\n\t\t\t\t\t)*\n\t\t\t\t\t\\s*\\)\n\t\t\t\t)\n\t\t\t": "captures"
   }
   {
     captures:
@@ -1196,15 +1007,15 @@ patterns: [
     ]
   }
   {
-    match: "(?<![-\\x{80}-\\x{10FFFF}\\w])[A-Z\\x{80}-\\x{10FFFF}][-\\w\\x{80}-\\x{10FFFF}]*"
+    match: "(?<! [-\\x{80}-\\x{10FFFF}\\w])[A-Z\\x{80}-\\x{10FFFF}][-\\w\\x{80}-\\x{10FFFF}]*"
     name: "support.class.onyx"
   }
   {
-    match: "(?<![-\\x{80}-\\x{10FFFF}\\w])[A-Z\\x{80}-\\x{10FFFF}][-\\w\\x{80}-\\x{10FFFF}]*\\b"
+    match: "(?<! [-\\x{80}-\\x{10FFFF}\\w])[A-Z\\x{80}-\\x{10FFFF}][-\\w\\x{80}-\\x{10FFFF}]*\\b"
     name: "variable.other.constant.onyx"
   }
   {
-    match: "(?<![-\\w\\x{80}-\\x{10FFFF}])(0[xX]\\h(?>_?\\h)*|\\d(?>_?\\d)*(\\.(?![^[:space:][:digit:]])(?>_?\\d)*)?([eE][-+]?\\d(?>_?\\d)*)?|0[bB][01]+)(_?(u8|u16|u32|u64|i8|i16|i32|i64|f32|f64))?\\b"
+    match: "(?<! [-\\w\\x{80}-\\x{10FFFF}])(0[xX]\\h(?>_?\\h)*|\\d(?>_?\\d)*(\\.(?![^[:space:][:digit:]])(?>_?\\d)*)?([eE][-+]?\\d(?>_?\\d)*)?|0[bB][01]+)(_?(u8|u16|u32|u64|i8|i16|i32|i64|f32|f64))?\\b"
     name: "constant.numeric.onyx"
   }
   {
@@ -1733,80 +1544,65 @@ patterns: [
     ]
   }
   {
-    begin: '''
-      (?x)
-      				(?<=
-      					\\{ | do | \\{\\s | do\\s
-      				)(
-      					\\|
-      				)
-      			
-    '''
-    captures:
-      "1":
-        name: "punctuation.separator.variable.onyx"
-    end: "(\\|)"
-    patterns: [
-      {
-        match: "[_a-zA-Z][_a-zA-Z0-9]*"
-        name: "variable.other.block.onyx"
-      }
-      {
-        match: ","
-        name: "punctuation.separator.variable.onyx"
-      }
-    ]
+    match: "<\\[|\\]>"
+    name: "punctuation.section.tuple.onyx"
+  }
+  {
+    match: "<\\{|\\}>"
+    name: "punctuation.section.tuple.onyx"
+  }
+  {
+    match: "\\{|\\}"
+    name: "punctuation.section.set.onyx"
+  }
+  {
+    match: "\\(|\\)"
+    name: "punctuation.section.group.onyx"
+  }
+  {
+    match: "\\[|\\]"
+    name: "punctuation.section.array.onyx"
   }
   {
     name: "keyword.operator.comparison.onyx"
     match: '''
       (?x)
-      				(<=>|<(?!<|=)|>(?!<|=|>)|<=|>=|===|==|=~|!=|!~|(?<=[ \\t])\\?)
-      				|
-      				( (?: not|and|or|isnt|is ) (?=[\\s\\n]) )
+      				(
+      					<=> |
+      					< (?! < | =) |
+      					> (?! < | = | >) |
+      					<= |
+      					>= |
+      					=== |
+      					== |
+      					=~ |
+      					!= |
+      					!~ |
+      					(?<= [ \\t]) \\?
+      				)|(
+      					(?: not | and | or | isnt | is )
+      					(?= [\\s\\n])
+      				)
       			
     '''
   }
   {
     comment: "A regular identifier (var/fn) used in code"
-    name: "variable.other.readwrite.instance.onyx"
+    name: "generic.code.onyx"
     match: '''
       (?x)
       				[a-z_\\x{80}-\\x{10FFFF}]
       				(?:
       					[-\\w\\x{80}-\\x{10FFFF}] *
-      					[\\w\\x{80}-\\x{10FFFF}?!%=] ?
+      					[\\w\\x{80}-\\x{10FFFF}?!%] ? # removed `=` for clash with macro-end-tok etc.
       				)
       				(?=[^-\\w\\x{80}-\\x{10FFFF}])
       			
     '''
   }
   {
-    match: "=>"
-    name: "punctuation.separator.key-value"
-  }
-  {
-    match: "<<=|%=|&=|\\*=|\\*\\*=|\\+=|\\-=|\\^=|\\|{1,2}=|<<|\\.\\."
+    match: "<<=|%=|&=|\\*=|\\*\\*=|\\+=|\\-=|\\^=|\\|{1,2}=|\\.=|<<|\\.\\."
     name: "keyword.operator.assignment.augmented.onyx"
-  }
-  {
-    match: '''
-      (?x)
-      				(?<=[ \\t])
-      				!+
-      				| (?<![-\\w\\x{80}-\\x{10FFFF}]) not (?![.\\x{80}-\\x{10FFFF}\\w?!-])
-      				| &&
-      				| (?<![-\\w\\x{80}-\\x{10FFFF}]) and (?![.\\x{80}-\\x{10FFFF}\\w?!-])
-      				| \\|\\|
-      				| (?<![-\\w\\x{80}-\\x{10FFFF}]) or (?![.\\x{80}-\\x{10FFFF}\\w?!-])
-      				| \\^
-      			
-    '''
-    name: "keyword.operator.logical.onyx"
-  }
-  {
-    match: "(\\{\\%|\\%\\}|\\{\\{|\\}\\})"
-    name: "keyword.operator.macro.onyx"
   }
   {
     match: "(%|&|\\*\\*|\\*|\\+|\\-|/)"
@@ -1817,12 +1613,12 @@ patterns: [
     name: "keyword.operator.assignment.onyx"
   }
   {
-    match: "\\||~|>>"
+    match: '''
+      (?x)
+      				\\| | ~ | >> | \\\\
+      			
+    '''
     name: "keyword.operator.other.onyx"
-  }
-  {
-    match: ":"
-    name: "punctuation.separator.other.onyx"
   }
   {
     match: "\\;"
@@ -1833,288 +1629,8 @@ patterns: [
     name: "punctuation.separator.object.onyx"
   }
   {
-    match: "\\.|::"
+    match: "\\."
     name: "punctuation.separator.method.onyx"
   }
-  {
-    match: "\\{|\\}"
-    name: "punctuation.section.scope.onyx"
-  }
-  {
-    match: "\\[|\\]"
-    name: "punctuation.section.array.onyx"
-  }
-  {
-    match: "\\(|\\)"
-    name: "punctuation.section.function.onyx"
-  }
 ]
-repository:
-  escaped_char:
-    match: "\\\\(?:[0-7]{1,3}|x[\\da-fA-F]{1,2}|.)"
-    name: "constant.character.escape.onyx"
-  heredoc:
-    begin: "^<<-?\\w+"
-    end: "$"
-    patterns: [
-      {
-        include: "$self"
-      }
-    ]
-  interpolated_onyx:
-    patterns: [
-      {
-        begin: "\\{"
-        captures:
-          "0":
-            name: "punctuation.section.embedded.onyx"
-        end: "\\}"
-        name: "source.onyx.embedded.source"
-        patterns: [
-          {
-            include: "#nest_curly_and_self"
-          }
-          {
-            include: "$self"
-          }
-        ]
-      }
-    ]
-  nest_brackets:
-    begin: "\\["
-    captures:
-      "0":
-        name: "punctuation.section.scope.onyx"
-    end: "\\]"
-    patterns: [
-      {
-        include: "#nest_brackets"
-      }
-    ]
-  nest_brackets_i:
-    begin: "\\["
-    captures:
-      "0":
-        name: "punctuation.section.scope.onyx"
-    end: "\\]"
-    patterns: [
-      {
-        include: "#interpolated_onyx"
-      }
-      {
-        include: "#escaped_char"
-      }
-      {
-        include: "#nest_brackets_i"
-      }
-    ]
-  nest_brackets_r:
-    begin: "\\["
-    captures:
-      "0":
-        name: "punctuation.section.scope.onyx"
-    end: "\\]"
-    patterns: [
-      {
-        include: "#regex_sub"
-      }
-      {
-        include: "#nest_brackets_r"
-      }
-    ]
-  nest_curly:
-    begin: "\\{"
-    captures:
-      "0":
-        name: "punctuation.section.scope.onyx"
-    end: "\\}"
-    patterns: [
-      {
-        include: "#nest_curly"
-      }
-    ]
-  nest_curly_and_self:
-    patterns: [
-      {
-        begin: "\\{"
-        captures:
-          "0":
-            name: "punctuation.section.scope.onyx"
-        end: "\\}"
-        patterns: [
-          {
-            include: "#nest_curly_and_self"
-          }
-        ]
-      }
-      {
-        include: "$self"
-      }
-    ]
-  nest_curly_i:
-    begin: "\\{"
-    captures:
-      "0":
-        name: "punctuation.section.scope.onyx"
-    end: "\\}"
-    patterns: [
-      {
-        include: "#interpolated_onyx"
-      }
-      {
-        include: "#escaped_char"
-      }
-      {
-        include: "#nest_curly_i"
-      }
-    ]
-  nest_curly_r:
-    begin: "\\{"
-    captures:
-      "0":
-        name: "punctuation.section.scope.onyx"
-    end: "\\}"
-    patterns: [
-      {
-        include: "#regex_sub"
-      }
-      {
-        include: "#nest_curly_r"
-      }
-    ]
-  nest_ltgt:
-    begin: "\\<"
-    captures:
-      "0":
-        name: "punctuation.section.scope.onyx"
-    end: "\\>"
-    patterns: [
-      {
-        include: "#nest_ltgt"
-      }
-    ]
-  nest_ltgt_i:
-    begin: "\\<"
-    captures:
-      "0":
-        name: "punctuation.section.scope.onyx"
-    end: "\\>"
-    patterns: [
-      {
-        include: "#interpolated_onyx"
-      }
-      {
-        include: "#escaped_char"
-      }
-      {
-        include: "#nest_ltgt_i"
-      }
-    ]
-  nest_ltgt_r:
-    begin: "\\<"
-    captures:
-      "0":
-        name: "punctuation.section.scope.onyx"
-    end: "\\>"
-    patterns: [
-      {
-        include: "#regex_sub"
-      }
-      {
-        include: "#nest_ltgt_r"
-      }
-    ]
-  nest_parens:
-    begin: "\\("
-    captures:
-      "0":
-        name: "punctuation.section.scope.onyx"
-    end: "\\)"
-    patterns: [
-      {
-        include: "#nest_parens"
-      }
-    ]
-  nest_parens_i:
-    begin: "\\("
-    captures:
-      "0":
-        name: "punctuation.section.scope.onyx"
-    end: "\\)"
-    patterns: [
-      {
-        include: "#interpolated_onyx"
-      }
-      {
-        include: "#escaped_char"
-      }
-      {
-        include: "#nest_parens_i"
-      }
-    ]
-  nest_parens_r:
-    begin: "\\("
-    captures:
-      "0":
-        name: "punctuation.section.scope.onyx"
-    end: "\\)"
-    patterns: [
-      {
-        include: "#regex_sub"
-      }
-      {
-        include: "#nest_parens_r"
-      }
-    ]
-  regex_sub:
-    patterns: [
-      {
-        include: "#interpolated_onyx"
-      }
-      {
-        include: "#escaped_char"
-      }
-      {
-        captures:
-          "1":
-            name: "punctuation.definition.arbitrary-repitition.onyx"
-          "3":
-            name: "punctuation.definition.arbitrary-repitition.onyx"
-        match: "(\\{)\\d+(,\\d+)?(\\})"
-        name: "string.regexp.arbitrary-repitition.onyx"
-      }
-      {
-        begin: "\\[(?:\\^?\\])?"
-        captures:
-          "0":
-            name: "punctuation.definition.character-class.onyx"
-        end: "\\]"
-        name: "string.regexp.character-class.onyx"
-        patterns: [
-          {
-            include: "#escaped_char"
-          }
-        ]
-      }
-      {
-        begin: "\\("
-        captures:
-          "0":
-            name: "punctuation.definition.group.onyx"
-        end: "\\)"
-        name: "string.regexp.group.onyx"
-        patterns: [
-          {
-            include: "#regex_sub"
-          }
-        ]
-      }
-      {
-        captures:
-          "1":
-            name: "punctuation.definition.comment.onyx"
-        comment: "We are restrictive in what we allow to go after the comment character to avoid false positives, since the availability of comments depend on regexp flags."
-        match: "(?<=^|\\s)--[[a-zA-Z0-9,. \\t?!-][^\\x{00}-\\x{7F}]]*$"
-        name: "comment.line.dashdash.onyx"
-      }
-    ]
+undefined: "repository"
